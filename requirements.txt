@@ -6,3 +6,4 @@ marshmallow
 python-dotenv
 redis
 celery
+psycopg2-binary

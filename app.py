@@ -13,6 +13,7 @@ from resources.item import blp as ItemBlueprint
 from resources.store import blp as StoreBlueprint
 from resources.tag import blp as TagBlueprint
 
+load_dotenv()
 
 app = Flask(__name__)
 app.config["API_TITLE"] = "Stores REST API"
@@ -21,15 +22,17 @@ app.config["OPENAPI_VERSION"] = "3.0.3"
 app.config["OPENAPI_URL_PREFIX"] = "/"
 app.config["OPENAPI_SWAGGER_UI_PATH"] = "/swagger-ui"
 app.config["OPENAPI_SWAGGER_UI_URL"] = "https://cdn.jsdelivr.net/npm/swagger-ui-dist/"
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///data.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL", "sqlite:///data.db")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["PROPAGATE_EXCEPTIONS"] = True
 db.init_app(app)
 api = Api(app)
 
-load_dotenv()
+
 app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY", "dev-only-change-me")
 jwt = JWTManager(app)
+
+
 
 @jwt.additional_claims_loader
 def add_claims_to_jwt(identity):
@@ -94,7 +97,7 @@ def revoked_token_callback(jwt_header, jwt_payload):
 
 
 with app.app_context():
-    import models 
+    import models
 
     db.create_all()
 
