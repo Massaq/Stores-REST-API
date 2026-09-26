@@ -1,4 +1,3 @@
-
 import os
 from datetime import timedelta
 
@@ -12,11 +11,12 @@ BLOCKLIST = redis.Redis.from_url(
     decode_responses=True,
 )
 
+
 JTI_EXPIRES = timedelta(hours=1)
 
 
 def add_jti_to_blocklist(jti: str) -> None:
-    BLOCKLIST.setex(jti, JTI_EXPIRES, "revoked")
+    BLOCKLIST.set(jti, "revoked", ex=JTI_EXPIRES)
 
 
 def is_jti_blocklisted(jti: str) -> bool:
