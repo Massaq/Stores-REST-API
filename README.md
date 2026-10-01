@@ -2,35 +2,35 @@
 
 [![Tests](https://github.com/Massaq/Stores-REST-API/actions/workflows/tests.yml/badge.svg)](https://github.com/Massaq/Stores-REST-API/actions/workflows/tests.yml)
 
-REST API для управління магазинами, товарами і тегами. Побудований на Flask
-із JWT-автентифікацією, фоновими задачами через Celery та Redis-backed
-blocklist для відкликаних токенів
+A REST API for managing stores, items, and tags. Built with Flask,
+JWT authentication, background tasks via Celery, and a Redis-backed
+blocklist for revoked tokens.
 
-## Стек
+## Stack
 
-- **Python / Flask / Flask-Smorest** — REST API з автоматичною OpenAPI-документацією
-- **SQLAlchemy + PostgreSQL** — ORM і продакшн-база даних
-- **Flask-JWT-Extended** — автентифікація через access/refresh токени
-- **Redis** — зберігає відкликані JWT-токени з автоматичним TTL,
-  замість in-memory `set()`, що не переживає перезапуск сервера
-- **Celery** — фонові задачі, щоб запит не блокувався на повільних операціях
-- **Docker / docker-compose** — чотири сервіси: `web`, `worker`, `redis`, `postgres`
-- **pytest** — тести для автентифікації, blocklist'а і CRUD ендпоінтів
-- **GitHub Actions** — тести автоматично запускаються при кожному push
+- **Python / Flask / Flask-Smorest** — REST API with automatic OpenAPI documentation
+- **SQLAlchemy + PostgreSQL** — ORM and production database
+- **Flask-JWT-Extended** — authentication via access/refresh tokens
+- **Redis** — stores revoked JWT tokens with an automatic TTL,
+  instead of an in-memory `set()` that doesn't survive a server restart
+- **Celery** — background tasks, so requests don't block on slow operations
+- **Docker / docker-compose** — four services: `web`, `worker`, `redis`, `postgres`
+- **pytest** — tests for authentication, the blocklist, and CRUD endpoints
+- **GitHub Actions** — tests run automatically on every push
 
-## Запуск
+## Getting Started
 
 ```bash
 git clone https://github.com/Massaq/Stores-REST-API.git
 cd Stores-REST-API
-cp .env.example .env   # і встав туди JWT_SECRET_KEY
+cp .env.example .env   # and put your JWT_SECRET_KEY in there
 docker compose up --build
 ```
 
-API буде доступний на `http://localhost:5001`,
-Swagger UI — на `http://localhost:5001/swagger-ui`.
+The API will be available at `http://localhost:5001`,
+and Swagger UI at `http://localhost:5001/swagger-ui`.
 
-## Тести
+## Tests
 
 ```bash
 docker compose up -d redis
@@ -38,20 +38,20 @@ pip install -r requirements-dev.txt
 pytest -v
 ```
 
-## Основні ендпоінти
+## Main Endpoints
 
-| Метод    | Шлях           | Опис                                                  |
-| -------- | -------------- | ----------------------------------------------------- |
-| POST     | `/register`    | Реєстрація користувача (+ фоновий email через Celery) |
-| POST     | `/login`       | Отримати access/refresh токени                        |
-| POST     | `/logout`      | Відкликати токен (Redis blocklist)                    |
-| POST     | `/refresh`     | Оновити access-токен                                  |
-| GET/POST | `/item/<name>` | Отримати / створити товар                             |
-| GET/POST | `/store`       | Список / створення магазинів                          |
-| GET/POST | `/tag/<name>`  | Теги для товарів                                      |
+| Method   | Path           | Description                                              |
+| -------- | -------------- | -------------------------------------------------------- |
+| POST     | `/register`    | Register a user (+ background email via Celery)          |
+| POST     | `/login`       | Obtain access/refresh tokens                             |
+| POST     | `/logout`      | Revoke a token (Redis blocklist)                         |
+| POST     | `/refresh`     | Refresh the access token                                 |
+| GET/POST | `/item/<name>` | Get / create an item                                     |
+| GET/POST | `/store`       | List / create stores                                     |
+| GET/POST | `/tag/<name>`  | Tags for items                                           |
 
-## Що можна покращити далі
+## Future Improvements
 
-- [ ] Alembic-міграції замість `db.create_all()`
-- [ ] Пагінація та пошук для `/item`
-- [ ] Тести проти реальної Postgres (зараз — in-memory SQLite для швидкості)
+- [ ] Alembic migrations instead of `db.create_all()`
+- [ ] Pagination and search for `/item`
+- [ ] Tests against a real Postgres instance (currently in-memory SQLite for speed)
