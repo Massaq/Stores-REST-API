@@ -1,0 +1,5 @@
+{
+  "name": "Stores REST API Console",
+  "description": "Inventory, store, item, tag, and user management console powered by React, TypeScript, TanStack Query, and Flask-Smorest.",
+  "requestFramePermissions": []
+}
