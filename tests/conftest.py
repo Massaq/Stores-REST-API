@@ -1,15 +1,17 @@
 import os
+from collections.abc import Generator
 
-os.environ.setdefault("DATABASE_URL", "sqlite:///:memory:")
-os.environ.setdefault("JWT_SECRET_KEY", "test-secret-key")
+os.environ["DATABASE_URL"] = "sqlite:///:memory:"
+os.environ["JWT_SECRET_KEY"] = "test-secret-key"
 
 import pytest
+from flask import Flask
+from flask.testing import FlaskClient
 from sqlalchemy.pool import StaticPool
 
+import celery_app as celery_module
 from app import app as flask_app
 from db import db as _db
-import celery_app as celery_module
-
 
 flask_app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "poolclass": StaticPool,
@@ -21,7 +23,7 @@ celery_module.celery_app.conf.task_eager_propagates = True
 
 
 @pytest.fixture
-def app():
+def app() -> Generator[Flask, None, None]:
     flask_app.config["TESTING"] = True
     with flask_app.app_context():
         _db.create_all()
@@ -31,5 +33,5 @@ def app():
 
 
 @pytest.fixture
-def client(app):
+def client(app: Flask) -> FlaskClient:
     return app.test_client()

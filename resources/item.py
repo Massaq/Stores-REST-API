@@ -1,7 +1,8 @@
+from typing import Any
+
 from flask.views import MethodView
+from flask_jwt_extended import get_jwt, jwt_required
 from flask_smorest import Blueprint, abort
-from flask_jwt_extended import get_jwt_identity, jwt_required, get_jwt
-from sqlalchemy.exc import SQLAlchemyError
 
 from models import ItemModel
 from schemas import ItemSchema, ItemUpdateSchema
@@ -13,52 +14,49 @@ blp = Blueprint("Items", __name__, description="Operations on items")
 class Item(MethodView):
     @jwt_required()
     @blp.response(200, ItemSchema)
-    def get(self, name):
+    def get(self, name: str) -> ItemModel:
         item = ItemModel.find_by_name(name)
-        if item:
-            return item
-        abort(404, message="Item not found")
+        if not item:
+            abort(404, message="Item not found")
+        return item
 
     @jwt_required(fresh=True)
     @blp.arguments(ItemSchema)
     @blp.response(201, ItemSchema)
-    def post(self, item_data, name):
+    def post(self, item_data: dict[str, Any], name: str) -> ItemModel:
         if ItemModel.find_by_name(name):
-            abort(400, message=f"An item with name {name} already exists.")
+            abort(400, message=f"An item with name '{name}' already exists.")
 
         item = ItemModel(**item_data, name=name)
-
-        try:
-            item.save_to_db()
-        except SQLAlchemyError:
-            abort(500, message="An error occurred while inserting the item.")
-
+        item.save_to_db()
         return item
 
     @jwt_required()
-    def delete(self, name):
-        jwt = get_jwt()
-        if not jwt["is_admin"]:
+    def delete(self, name: str) -> dict[str, str]:
+        jwt: dict[str, Any] = get_jwt()
+        if not jwt.get("is_admin"):
             abort(401, message="Admin privilege required.")
 
         item = ItemModel.find_by_name(name)
-        if item:
-            item.delete_from_db()
-            return {"message": "Item deleted."}
-        abort(404, message="Item not found.")
+        if not item:
+            abort(404, message="Item not found.")
+
+        item.delete_from_db()
+        return {"message": "Item deleted."}
 
     @blp.arguments(ItemUpdateSchema)
     @blp.response(200, ItemSchema)
-    def put(self, item_data, name):
+    def put(self, item_data: dict[str, Any], name: str) -> ItemModel:
         item = ItemModel.find_by_name(name)
 
         if item:
             item.price = item_data["price"]
+            if "store_id" in item_data:
+                item.store_id = item_data["store_id"]
         else:
-            item = ItemModel(name, **item_data)
+            item = ItemModel(name=name, **item_data)
 
         item.save_to_db()
-
         return item
 
 
@@ -66,5 +64,5 @@ class Item(MethodView):
 class ItemList(MethodView):
     @jwt_required()
     @blp.response(200, ItemSchema(many=True))
-    def get(self):
+    def get(self) -> list[ItemModel]:
         return ItemModel.find_all()

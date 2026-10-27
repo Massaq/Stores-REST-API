@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Any
+
 from db import db
 
 
@@ -12,10 +16,9 @@ class ItemModel(db.Model):
         db.Integer, db.ForeignKey("stores.id"), unique=False, nullable=False
     )
     store = db.relationship("StoreModel", back_populates="items")
-
     tags = db.relationship("TagModel", back_populates="items", secondary="items_tags")
 
-    def json(self):
+    def json(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "name": self.name,
@@ -25,17 +28,17 @@ class ItemModel(db.Model):
         }
 
     @classmethod
-    def find_by_name(cls, name):
+    def find_by_name(cls, name: str) -> ItemModel | None:
         return cls.query.filter_by(name=name).first()
 
     @classmethod
-    def find_all(cls):
-        return cls.query.all()
+    def find_all(cls) -> list[ItemModel]:
+        return list(cls.query.all())
 
-    def save_to_db(self):
+    def save_to_db(self) -> None:
         db.session.add(self)
         db.session.commit()
 
-    def delete_from_db(self):
+    def delete_from_db(self) -> None:
         db.session.delete(self)
         db.session.commit()
